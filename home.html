@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SkillSwap — Home</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <nav class="nav">
+        <a class="brand" href="home.html"><span class="mark">S</span> SkillSwap</a>
+        <div class="nav-links">
+          <a class="ghost" href="details.html">Edit profile</a>
+          <button class="ghost" id="logoutBtn" type="button">Log out</button>
+        </div>
+      </nav>
+      <main class="wrap">
+        <p class="eyebrow">Your desk</p>
+        <h1 class="page-title">Welcome back.</h1>
+        <div class="profile-hero">
+          <article class="card" id="profileCard"></article>
+          <aside class="actions">
+            <a class="btn" href="find-peer.html">Find a peer</a>
+            <a class="btn-secondary" id="connLink" href="connections.html">Your connections</a>
+          </aside>
+        </div>
+        <!-- <p class="footer-note">
+          Matching is simulated on the frontend until a backend is connected.
+        </p> -->
+      </main>
+    </div>
+    <script src="js/app.js"></script>
+    <script src="js/home.js"></script>
+  </body>
+</html>

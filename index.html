@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SkillSwap — Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div class="page auth-layout">
+      <section class="hero-panel">
+        <div>
+          <div class="brand">
+            <span class="mark">S</span>
+            SkillSwap
+          </div>
+          <p class="eyebrow" style="margin-top: 48px">Campus peer learning</p>
+          <h1>Trade a skill. Take one home.</h1>
+          <p class="lede">
+            College students teach what they know and pick up what they don’t —
+            guitar for Python, design for DSA, language for lab notes.
+          </p>
+          <div class="stat-row">
+            <div class="stat"><strong>1:1</strong><span>peer matches</span></div>
+            <div class="stat"><strong>Campus</strong><span>only network</span></div>
+            <div class="stat"><strong>Fair</strong><span>skill exchange</span></div>
+          </div>
+        </div>
+        <p class="muted">Frontend preview · data stays on this device for now</p>
+      </section>
+
+      <section class="auth-card-wrap">
+        <div class="card auth-card">
+          <div class="tabs">
+            <button class="tab active" id="loginTab" type="button" onclick="switchAuth('login')">Log in</button>
+            <button class="tab" id="signupTab" type="button" onclick="switchAuth('signup')">Sign up</button>
+          </div>
+
+          <form id="loginForm" action="#" method="post" onsubmit="handleLogin(event); return false;">
+            <label>
+              College email
+              <input type="email" name="email" required placeholder="you@college.edu" />
+            </label>
+            <label>
+              Password
+              <input type="password" name="password" required minlength="6" />
+            </label>
+            <p class="note" id="loginNote"></p>
+            <button class="btn" type="submit">Enter SkillSwap</button>
+          </form>
+
+          <form id="signupForm" class="hidden" action="#" method="post" onsubmit="handleSignup(event); return false;">
+            <label>
+              Full name
+              <input type="text" name="name" required placeholder="Your name" />
+            </label>
+            <label>
+              College email
+              <input type="email" name="email" required placeholder="you@college.edu" />
+            </label>
+            <label>
+              Password
+              <input type="password" name="password" required minlength="6" />
+            </label>
+            <p class="note" id="signupNote"></p>
+            <button class="btn" type="submit">Create account</button>
+          </form>
+        </div>
+      </section>
+    </div>
+    <script src="js/app.js"></script>
+    <script src="js/auth.js"></script>
+  </body>
+</html>

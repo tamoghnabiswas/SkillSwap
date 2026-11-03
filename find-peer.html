@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SkillSwap — Find a peer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <nav class="nav">
+        <a class="brand" href="home.html"><span class="mark">S</span> SkillSwap</a>
+        <div class="nav-links">
+          <a class="ghost" href="home.html">Home</a>
+          <a class="ghost" href="connections.html">Connections</a>
+          <button class="ghost" id="logoutBtn" type="button">Log out</button>
+        </div>
+      </nav>
+      <main class="wrap">
+        <p class="eyebrow">Matchmaking</p>
+        <h1 class="page-title">Find a peer.</h1>
+        <p class="sub">
+          Students who can teach what you want to learn — and who want something
+          you can offer.
+        </p>
+        <div class="section-head">
+          <h2 style="margin:0;font-family:var(--font-display)">Suggested matches</h2>
+        </div>
+        <div class="peer-grid" id="peerGrid"></div>
+      </main>
+    </div>
+    <script src="js/app.js"></script>
+    <script src="js/find-peer.js"></script>
+  </body>
+</html>

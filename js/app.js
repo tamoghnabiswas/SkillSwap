@@ -1,6 +1,7 @@
-// Address of the backend server (node server.js)
-const SERVER = "http://localhost:3000";
-const API = SERVER + "/api";
+// On Live Server / a local file the backend is on localhost:3000.
+// When the site is served by the backend itself (or hosted online), "/api" is enough.
+const usingLiveServer = ["5500", "5501", "5502"].includes(location.port) || location.protocol === "file:";
+const API = usingLiveServer ? "http://localhost:3000/api" : "/api";
 const SESSION_KEY = "skillswap_session";
 
 const SKILL_SUGGESTIONS = [
@@ -192,7 +193,6 @@ async function initAuthPage() {
 }
 
 window.SkillSwap = {
-  SERVER,
   SKILL_SUGGESTIONS,
   api,
   post,

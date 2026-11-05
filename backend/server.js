@@ -132,5 +132,39 @@ app.get("/api/connections/:userId", async (req, res) => {
   );
 });
 
+// shape of a document in the "messages" collection
+const messageSchema = new mongoose.Schema({
+  senderId: String,
+  receiverId: String,
+  text: String,
+  sentAt: { type: Date, default: Date.now },
+});
+const Message = mongoose.model("Message", messageSchema);
+
+// SEND MESSAGE
+app.post("/api/messages", async (req, res) => {
+  const { senderId, receiverId, text } = req.body;
+  if (!senderId || !receiverId || !text || !text.trim()) {
+    return res.status(400).json({ error: "senderId, receiverId and text are required." });
+  }
+  const message = await Message.create({ senderId, receiverId, text: text.trim() });
+  res.json(message);
+});
+
+// LOAD CHAT: all messages between me and one peer, oldest first
+// called like /api/messages/<peerId>?userId=<myId>
+app.get("/api/messages/:peerId", async (req, res) => {
+  const { userId } = req.query;
+  const { peerId } = req.params;
+  if (!userId) return res.status(400).json({ error: "userId is required." });
+  const messages = await Message.find({
+    $or: [
+      { senderId: userId, receiverId: peerId },
+      { senderId: peerId, receiverId: userId },
+    ],
+  }).sort({ sentAt: 1 });
+  res.json(messages);
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Server running on port " + PORT));

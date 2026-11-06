@@ -1,24 +1,24 @@
 (async function () {
-const { api, post, requireAuth, fillNav, escapeHtml } = window.SkillSwap;
+  const { api, post, requireAuth, fillNav, escapeHtml } = window.SkillSwap;
 
-const auth = await requireAuth(true);
-if (!auth) return;
-fillNav();
+  const auth = await requireAuth(true);
+  if (!auth) return;
+  fillNav();
 
-const me = auth.user.id;
-const reqSection = document.getElementById("requestsSection");
-const reqGrid = document.getElementById("reqGrid");
-const grid = document.getElementById("connGrid");
+  const me = auth.user.id;
+  const reqSection = document.getElementById("requestsSection");
+  const reqGrid = document.getElementById("reqGrid");
+  const grid = document.getElementById("connGrid");
 
-// "Pending requests": students who asked to connect with me
-async function loadRequests() {
-  const res = await api("/requests/" + me);
-  const list = res.ok ? res.data.filter((r) => r.from) : [];
-  reqSection.classList.toggle("hidden", !list.length);
-  reqGrid.innerHTML = list
-    .map((r) => {
-      const p = r.from;
-      return `
+  // "Pending requests": students who asked to connect with me
+  async function loadRequests() {
+    const res = await api("/requests/" + me);
+    const list = res.ok ? res.data.filter((r) => r.from) : [];
+    reqSection.classList.toggle("hidden", !list.length);
+    reqGrid.innerHTML = list
+      .map((r) => {
+        const p = r.from;
+        return `
         <article class="card conn-card">
           <h3>${escapeHtml(p.name)}</h3>
           <p class="muted">Sem ${escapeHtml(p.semester)} · ${escapeHtml(p.branch)}</p>
@@ -27,37 +27,37 @@ async function loadRequests() {
             .join(", ")}</p>
           <p class="muted"><strong>They want:</strong> ${(p.learn || []).map(escapeHtml).join(", ")}</p>
           <div class="row" style="margin-top:14px">
-            <button class="btn" data-accept="${escapeHtml(r.requestId)}">Accept</button>
-            <button class="btn-outline" data-decline="${escapeHtml(r.requestId)}">Decline</button>
+            <button class="btn" data-accept="${escapeHtml(r._id)}">Accept</button>
+            <button class="btn-outline" data-decline="${escapeHtml(r._id)}">Decline</button>
           </div>
         </article>
       `;
-    })
-    .join("");
-}
-
-// "Connected peers": accepted connections, each with a Chat button
-async function loadConnections() {
-  const res = await api("/connections/" + me);
-  // each item from the backend looks like { connectedAt, peer: {...profile} }
-  const mine = res.ok ? res.data.filter((c) => c.peer) : [];
-
-  if (!mine.length) {
-    grid.innerHTML =
-      '<div class="empty">No connections yet. Use <a href="find-peer.html"><strong>Find a peer</strong></a> to send a request.</div>';
-    return;
+      })
+      .join("");
   }
-  grid.innerHTML = mine
-    .map((c) => {
-      const peer = c.peer;
-      const when = c.connectedAt
-        ? new Date(c.connectedAt).toLocaleDateString(undefined, {
+
+  // "Connected peers": accepted connections, each with a Chat button
+  async function loadConnections() {
+    const res = await api("/connections/" + me);
+    // each item from the backend looks like { connectedAt, peer: {...profile} }
+    const mine = res.ok ? res.data.filter((c) => c.peer) : [];
+
+    if (!mine.length) {
+      grid.innerHTML =
+        '<div class="empty">No connections yet. Use <a href="find-peer.html"><strong>Find a peer</strong></a> to send a request.</div>';
+      return;
+    }
+    grid.innerHTML = mine
+      .map((c) => {
+        const peer = c.peer;
+        const when = c.connectedAt
+          ? new Date(c.connectedAt).toLocaleDateString(undefined, {
             day: "numeric",
             month: "short",
             year: "numeric",
           })
-        : "";
-      return `
+          : "";
+        return `
         <article class="card conn-card">
           <h3>${escapeHtml(peer.name)}</h3>
           <p class="muted">Sem ${escapeHtml(peer.semester)} · ${escapeHtml(peer.branch)}</p>
@@ -69,25 +69,25 @@ async function loadConnections() {
           <a class="btn" style="display:inline-block;margin-top:12px" href="chat.html?peer=${encodeURIComponent(peer.userId)}">Chat</a>
         </article>
       `;
-    })
-    .join("");
-}
-
-// Accept / Decline buttons
-reqGrid.addEventListener("click", async (e) => {
-  const acceptId = e.target.getAttribute("data-accept");
-  const declineId = e.target.getAttribute("data-decline");
-  const id = acceptId || declineId;
-  if (!id) return;
-  const res = await post("/requests/" + id + (acceptId ? "/accept" : "/decline"), { userId: me });
-  if (!res.ok) {
-    alert((res.data && res.data.error) || "Something went wrong. Try again.");
-    return;
+      })
+      .join("");
   }
+
+  // Accept / Decline buttons
+  reqGrid.addEventListener("click", async (e) => {
+    const acceptId = e.target.getAttribute("data-accept");
+    const declineId = e.target.getAttribute("data-decline");
+    const id = acceptId || declineId;
+    if (!id) return;
+    const res = await post("/requests/" + id + (acceptId ? "/accept" : "/decline"), { userId: me });
+    if (!res.ok) {
+      alert((res.data && res.data.error) || "Something went wrong. Try again.");
+      return;
+    }
+    loadRequests();
+    loadConnections();
+  });
+
   loadRequests();
   loadConnections();
-});
-
-loadRequests();
-loadConnections();
 })();

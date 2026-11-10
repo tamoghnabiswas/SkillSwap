@@ -2,6 +2,7 @@
 // When the site is served by the backend itself (or hosted online), "/api" is enough.
 const usingLiveServer = ["5500", "5501", "5502"].includes(location.port) || location.protocol === "file:";
 const API = usingLiveServer ? "http://localhost:3000/api" : "/api";
+const SERVER = usingLiveServer ? "http://localhost:3000" : "";
 const SESSION_KEY = "skillswap_session";
 
 const SKILL_SUGGESTIONS = [
@@ -193,6 +194,7 @@ async function initAuthPage() {
 }
 
 window.SkillSwap = {
+  SERVER,
   SKILL_SUGGESTIONS,
   api,
   post,

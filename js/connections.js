@@ -75,17 +75,19 @@
 
   // Accept / Decline buttons
   reqGrid.addEventListener("click", async (e) => {
-    const acceptId = e.target.getAttribute("data-accept");
-    const declineId = e.target.getAttribute("data-decline");
-    const id = acceptId || declineId;
-    if (!id) return;
+    const btn = e.target.closest("button[data-accept], button[data-decline]");
+    if (!btn) return;
+    const acceptId = btn.getAttribute("data-accept");
+    const id = acceptId || btn.getAttribute("data-decline");
+    btn.disabled = true;
     const res = await post("/requests/" + id + (acceptId ? "/accept" : "/decline"), { userId: me });
     if (!res.ok) {
-      alert((res.data && res.data.error) || "Something went wrong. Try again.");
+      btn.disabled = false;
+      alert("Failed (" + res.status + "): " + ((res.data && res.data.error) || "Something went wrong. Try again."));
       return;
     }
-    loadRequests();
-    loadConnections();
+    await loadRequests();
+    await loadConnections();
   });
 
   loadRequests();

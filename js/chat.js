@@ -30,7 +30,7 @@ if (peerRes.ok) {
 
 // draw one message bubble (mine on the right, theirs on the left)
 function bubble(m) {
-  const mine = m.from === me;
+  const mine = m.senderId === me;
   let file = "";
   if (m.fileUrl) {
     const url = SERVER + m.fileUrl;
@@ -39,7 +39,8 @@ function bubble(m) {
         ? `<a href="${url}" target="_blank"><img src="${url}" alt="${escapeHtml(m.fileName)}" /></a>`
         : `<a class="file-link" href="${url}" target="_blank">${escapeHtml(m.fileName)}</a>`;
   }
-  const time = new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const sent = new Date(m.sentAt);
+  const time = isNaN(sent) ? "" : sent.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   return `
     <div class="msg ${mine ? "mine" : "theirs"}">
       ${file}
@@ -82,8 +83,8 @@ form.addEventListener("submit", async (e) => {
   if (!text && !file) return;
 
   const data = new FormData();
-  data.append("from", me);
-  data.append("to", peerId);
+  data.append("senderId", me);
+  data.append("receiverId", peerId);
   data.append("text", text);
   if (file) data.append("file", file);
 

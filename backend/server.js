@@ -573,5 +573,24 @@ app.get(
   })
 );
 
+// DELETE ACCOUNT: needs the password; removes the user and everything linked to them
+app.delete(
+  "/api/account/:userId",
+  wrap(async (req, res) => {
+    const { userId } = req.params;
+    if (!mongoose.isValidObjectId(userId)) return res.status(400).json({ error: "Bad user id." });
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "Account not found." });
+    const ok = await bcrypt.compare((req.body && req.body.password) || "", user.passwordHash);
+    if (!ok) return res.status(403).json({ error: "Wrong password." });
+
+    await Message.deleteMany({ $or: [{ senderId: userId }, { receiverId: userId }] });
+    await Connection.deleteMany({ $or: [{ userId }, { peerId: userId }] });
+    await Profile.deleteOne({ userId });
+    await User.findByIdAndDelete(userId);
+    res.json({ deleted: true });
+  })
+);
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("Server running on port " + PORT));

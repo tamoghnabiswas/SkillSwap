@@ -25,7 +25,11 @@ const connectedIds = new Set(
 );
 
 // requests I sent that the other student has not accepted yet
-const requestedIds = new Set(sentRes.ok ? sentRes.data : []);
+const requestedIds = new Set(
+  (sentRes.ok ? sentRes.data : [])
+    .filter((r) => r.status === "pending")
+    .map((r) => r.peerId)
+);
 
 const ranked = peersRes.data
   .map((peer) => ({ ...peer, score: skillMatchScore(profile, peer) }))

@@ -1,116 +1,126 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SkillSwap — Your details</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,700&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="css/styles.css" />
-  </head>
-  <body>
-    <div class="page">
-      <nav class="nav">
-        <a class="brand" href="home.html"><span class="mark">S</span> SkillSwap</a>
-        <div class="nav-links">
-          <button class="ghost" id="logoutBtn" type="button">Log out</button>
-        </div>
-      </nav>
-      <main class="wrap">
-        <p class="eyebrow">Step 2 · Profile</p>
-        <h1 class="page-title">Tell campus who you are.</h1>
-        <p class="sub">
-          Add what you want to learn and what you can teach. Matching uses this
-          later — for now it stays on your device.
-        </p>
+(async function () {
+const { SKILL_SUGGESTIONS, api, post, requireAuth, fillNav, escapeHtml, logout } = window.SkillSwap;
 
-        <form id="detailsForm" class="card" style="margin-top: 28px">
-          <div class="grid-2">
-            <label>
-              Name
-              <input type="text" name="name" id="nameInput" required />
-            </label>
-            <label>
-              Semester
-              <select name="semester" id="semesterInput" required>
-                <option value="">Select</option>
-                <option>1</option>
-                <option>2</option>
-                <option>3</option>
-                <option>4</option>
-                <option>5</option>
-                <option>6</option>
-                <option>7</option>
-                <option>8</option>
-              </select>
-            </label>
-            <label>
-              Branch
-              <select name="branch" id="branchInput" required>
-                <option value="">Select</option>
-                <option>CSE</option>
-                <option>IT</option>
-                <option>ECE</option>
-                <option>EEE</option>
-                <option>Mechanical</option>
-                <option>Civil</option>
-                <option>AI/ML</option>
-                <option>Biotechnology</option>
-                <option>Other</option>
-              </select>
-            </label>
-          </div>
+const auth = await requireAuth(false);
+if (!auth) return;
+fillNav();
 
-          <div class="skill-builder" style="margin-top: 8px">
-            <strong>Skills you want to learn</strong>
-            <div class="row">
-              <input list="skillList" id="learnInput" placeholder="e.g. Guitar" />
-              <button class="btn-outline" id="addLearn" type="button">Add</button>
-            </div>
-            <div class="chips" id="learnChips"></div>
-          </div>
+const learn = [];
+const teach = [];
+const user = auth.user;
+const existing = auth.profile;
 
-          <div class="skill-builder">
-            <strong>Skills you can impart</strong>
-            <div class="row">
-              <input list="skillList" id="teachInput" placeholder="e.g. Python" />
-              <select id="levelInput">
-                <option>Beginner</option>
-                <option selected>Intermediate</option>
-                <option>Advanced</option>
-                <option>Expert</option>
-              </select>
-              <button class="btn-outline" id="addTeach" type="button">Add</button>
-            </div>
-            <div class="chips" id="teachChips"></div>
-          </div>
+document.getElementById("skillList").innerHTML = SKILL_SUGGESTIONS.map(
+  (s) => `<option value="${escapeHtml(s)}"></option>`
+).join("");
 
-          <datalist id="skillList"></datalist>
-          <p class="note" id="detailsNote"></p>
-          <button class="btn" type="submit">Submit profile</button>
-        </form>
+document.getElementById("nameInput").value = existing?.name || user.name || "";
+if (existing?.semester) document.getElementById("semesterInput").value = existing.semester;
+if (existing?.branch) document.getElementById("branchInput").value = existing.branch;
+if (existing?.learn) learn.push(...existing.learn);
+if (existing?.teach) teach.push(...existing.teach);
 
-        <section class="card" id="deleteZone" style="margin-top: 28px; border-color: #c0392b">
-          <h2 style="margin:0 0 8px;font-family:var(--font-display)">Delete account</h2>
-          <p class="muted">
-            This permanently removes your profile, connections and messages. It cannot be undone.
-          </p>
-          <label>
-            Confirm with your password
-            <input type="password" id="deletePassword" autocomplete="current-password" />
-          </label>
-          <p class="note" id="deleteNote"></p>
-          <button class="btn-outline" id="deleteBtn" type="button" style="color:#c0392b;border-color:#c0392b">
-            Delete my account
-          </button>
-        </section>
-      </main>
-    </div>
-    <script src="js/app.js"></script>
-    <script src="js/details.js"></script>
-  </body>
-</html>
+function renderChips() {
+  document.getElementById("learnChips").innerHTML = learn
+    .map(
+      (s, i) =>
+        `<span class="chip">${escapeHtml(s)}<button type="button" data-learn="${i}" aria-label="Remove">×</button></span>`
+    )
+    .join("");
+  document.getElementById("teachChips").innerHTML = teach
+    .map(
+      (s, i) =>
+        `<span class="chip">${escapeHtml(s.name)} <span class="level">${escapeHtml(s.level)}</span><button type="button" data-teach="${i}" aria-label="Remove">×</button></span>`
+    )
+    .join("");
+}
+
+renderChips();
+
+document.getElementById("addLearn").addEventListener("click", () => {
+  const input = document.getElementById("learnInput");
+  const value = input.value.trim();
+  if (!value) return;
+  if (!learn.some((s) => s.toLowerCase() === value.toLowerCase())) learn.push(value);
+  input.value = "";
+  renderChips();
+});
+
+document.getElementById("addTeach").addEventListener("click", () => {
+  const input = document.getElementById("teachInput");
+  const value = input.value.trim();
+  const level = document.getElementById("levelInput").value;
+  if (!value) return;
+  if (!teach.some((s) => s.name.toLowerCase() === value.toLowerCase())) {
+    teach.push({ name: value, level });
+  }
+  input.value = "";
+  renderChips();
+});
+
+["learnInput", "teachInput"].forEach((id) => {
+  document.getElementById(id).addEventListener("keydown", (e) => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    document.getElementById(id === "learnInput" ? "addLearn" : "addTeach").click();
+  });
+});
+
+document.getElementById("learnChips").addEventListener("click", (e) => {
+  const i = e.target.getAttribute("data-learn");
+  if (i == null) return;
+  learn.splice(Number(i), 1);
+  renderChips();
+});
+
+document.getElementById("teachChips").addEventListener("click", (e) => {
+  const i = e.target.getAttribute("data-teach");
+  if (i == null) return;
+  teach.splice(Number(i), 1);
+  renderChips();
+});
+
+document.getElementById("detailsForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const note = document.getElementById("detailsNote");
+  if (!learn.length || !teach.length) {
+    note.textContent = "Add at least one skill to learn and one skill you can teach.";
+    return;
+  }
+  note.textContent = "Saving...";
+  const res = await post("/profile", {
+    userId: user.id,
+    name: document.getElementById("nameInput").value.trim(),
+    semester: document.getElementById("semesterInput").value,
+    branch: document.getElementById("branchInput").value,
+    learn: [...learn],
+    teach: [...teach],
+  });
+  if (!res.ok) {
+    note.textContent = (res.data && res.data.error) || "Could not save. Try again.";
+    return;
+  }
+  window.location.href = "home.html";
+});
+
+document.getElementById("deleteBtn").addEventListener("click", async () => {
+  const note = document.getElementById("deleteNote");
+  const password = document.getElementById("deletePassword").value;
+  note.textContent = "";
+  if (!password) {
+    note.textContent = "Enter your password to confirm.";
+    return;
+  }
+  if (!confirm("Delete your account permanently? This cannot be undone.")) return;
+  const res = await api("/account/" + user.id, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ password }),
+  });
+  if (!res.ok) {
+    note.textContent = (res.data && res.data.error) || "Could not delete the account. Try again.";
+    return;
+  }
+  logout(); // clears the saved session and returns to the login page
+});
+})();

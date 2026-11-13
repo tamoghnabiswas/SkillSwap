@@ -43,7 +43,9 @@ function bubble(m) {
     ? `<button class="btn" type="button" data-call="${escapeHtml(m._id)}">📹 Join video call</button>`
     : "";
   const sent = new Date(m.sentAt);
-  const time = isNaN(sent) ? "" : sent.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const time = isNaN(sent)
+  ? ""
+  : sent.toLocaleString([], { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
   return `
     <div class="msg ${mine ? "mine" : "theirs"}">
       ${file}

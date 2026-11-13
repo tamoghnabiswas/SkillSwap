@@ -185,6 +185,7 @@ const bcrypt = require("bcryptjs");
 const cors = require("cors");
 const path = require("path");
 const multer = require("multer");
+const crypto = require("crypto");
 
 const app = express();
 app.use(express.json({ limit: "10mb" })); // room for base64 attachments (5 MB file ~ 6.7 MB text)
@@ -462,6 +463,7 @@ const Message = mongoose.model(
     senderId: String,
     receiverId: String,
     text: { type: String, default: "" },
+    callRoom: String, // Jitsi room name when this message is a video call invite
     fileName: String,
     fileType: String,
     fileSize: Number,
@@ -478,6 +480,7 @@ function publicMessage(m) {
     senderId: m.senderId,
     receiverId: m.receiverId,
     text: m.text,
+    callRoom: m.callRoom || null,
     sentAt: m.sentAt,
     fileName: hasFile ? m.fileName : null,
     fileType: hasFile ? m.fileType : null,
@@ -557,6 +560,45 @@ app.get(
       .select("-fileData")
       .sort({ sentAt: 1 });
     res.json(messages.map(publicMessage));
+  })
+);
+
+// ---------------------------------------------------------- VIDEO CALLS (Jitsi)
+const JITSI_DOMAIN = process.env.JITSI_DOMAIN || "meet.jit.si";
+
+// START CALL: makes a private room and posts an invite into the chat
+app.post(
+  "/api/calls/start",
+  wrap(async (req, res) => {
+    const { userId, peerId } = req.body;
+    if (!userId || !peerId) return res.status(400).json({ error: "userId and peerId are required." });
+    if (!(await areConnected(userId, peerId))) {
+      return res.status(403).json({ error: "You can only call accepted connections." });
+    }
+    const room = "SkillSwap-" + crypto.randomBytes(12).toString("hex");
+    const message = await Message.create({
+      senderId: userId,
+      receiverId: peerId,
+      text: "📹 Started a video call",
+      callRoom: room,
+    });
+    res.json({ room, domain: JITSI_DOMAIN, message: publicMessage(message) });
+  })
+);
+
+// JOIN CALL: only the two students in that chat can get the room
+app.get(
+  "/api/calls/:messageId/join",
+  wrap(async (req, res) => {
+    const { userId } = req.query;
+    if (!mongoose.isValidObjectId(req.params.messageId)) return res.status(400).json({ error: "Bad call id." });
+    const m = await Message.findById(req.params.messageId).select("-fileData");
+    if (!m || !m.callRoom) return res.status(404).json({ error: "Call not found." });
+    if (userId !== m.senderId && userId !== m.receiverId) {
+      return res.status(403).json({ error: "This call is not for you." });
+    }
+    const user = await User.findById(userId);
+    res.json({ room: m.callRoom, domain: JITSI_DOMAIN, displayName: user ? user.name : "Student" });
   })
 );
 

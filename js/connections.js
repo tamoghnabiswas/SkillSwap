@@ -66,7 +66,10 @@
             .join(", ")}</p>
           <p class="muted"><strong>They want:</strong> ${(peer.learn || []).map(escapeHtml).join(", ")}</p>
           <p class="muted" style="margin-top:12px">Connected ${when}</p>
-          <a class="btn" style="display:inline-block;margin-top:12px" href="chat.html?peer=${encodeURIComponent(peer.userId)}">Chat</a>
+          <div class="row" style="margin-top:12px">
+            <a class="btn" href="chat.html?peer=${encodeURIComponent(peer.userId)}">Chat</a>
+            <a class="btn-outline" href="chat.html?peer=${encodeURIComponent(peer.userId)}&call=1">📹 Video call</a>
+          </div>
         </article>
       `;
       })

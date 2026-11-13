@@ -1,5 +1,5 @@
 (async function () {
-const { api, requireAuth, fillNav, escapeHtml, SERVER } = window.SkillSwap;
+const { api, post, requireAuth, fillNav, escapeHtml, SERVER } = window.SkillSwap;
 
 const auth = await requireAuth(true);
 if (!auth) return;
@@ -39,12 +39,16 @@ function bubble(m) {
         ? `<a href="${url}" target="_blank"><img src="${url}" alt="${escapeHtml(m.fileName)}" /></a>`
         : `<a class="file-link" href="${url}" target="_blank">${escapeHtml(m.fileName)}</a>`;
   }
+  const call = m.callRoom
+    ? `<button class="btn" type="button" data-call="${escapeHtml(m._id)}">📹 Join video call</button>`
+    : "";
   const sent = new Date(m.sentAt);
   const time = isNaN(sent) ? "" : sent.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   return `
     <div class="msg ${mine ? "mine" : "theirs"}">
       ${file}
       ${m.text ? `<div>${escapeHtml(m.text)}</div>` : ""}
+      ${call}
       <div class="time">${time}</div>
     </div>`;
 }
@@ -98,6 +102,71 @@ form.addEventListener("submit", async (e) => {
   fileLabel.textContent = "";
   loadMessages();
 });
+
+// ---------- video call (Jitsi) ----------
+const callBox = document.getElementById("callBox");
+let jitsiApi = null;
+
+function openJitsi(domain, room, displayName) {
+  if (typeof JitsiMeetExternalAPI === "undefined") {
+    note.textContent = "Video call could not load. Check your internet and refresh.";
+    return;
+  }
+  callBox.classList.remove("hidden");
+  jitsiApi = new JitsiMeetExternalAPI(domain, {
+    roomName: room,
+    parentNode: document.getElementById("jitsiContainer"),
+    width: "100%",
+    height: "100%",
+    userInfo: { displayName },
+    configOverwrite: { prejoinPageEnabled: false },
+  });
+  jitsiApi.addListener("readyToClose", endCall); // user hung up inside Jitsi
+}
+
+function endCall() {
+  if (jitsiApi) {
+    jitsiApi.dispose();
+    jitsiApi = null;
+  }
+  callBox.classList.add("hidden");
+}
+document.getElementById("endCallBtn").addEventListener("click", endCall);
+
+async function startCall() {
+  note.textContent = "";
+  const res = await post("/calls/start", { userId: me, peerId });
+  if (!res.ok) {
+    note.textContent = (res.data && res.data.error) || "Could not start the call.";
+    return;
+  }
+  openJitsi(res.data.domain, res.data.room, auth.user.name || "Student");
+  loadMessages(); // shows the invite in the chat
+}
+
+async function joinCall(messageId) {
+  note.textContent = "";
+  const res = await api("/calls/" + messageId + "/join?userId=" + encodeURIComponent(me));
+  if (!res.ok) {
+    note.textContent = (res.data && res.data.error) || "Could not join the call.";
+    return;
+  }
+  openJitsi(res.data.domain, res.data.room, res.data.displayName);
+}
+
+document.getElementById("callBtn").addEventListener("click", startCall);
+
+// clicking "Join video call" inside a message bubble
+box.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-call]");
+  if (btn) joinCall(btn.getAttribute("data-call"));
+});
+
+// came from the Connections page's Video call button: start the call right away
+if (new URLSearchParams(window.location.search).get("call") === "1") {
+  history.replaceState(null, "", "chat.html?peer=" + encodeURIComponent(peerId)); // so a refresh doesn't call again
+  startCall();
+}
 
 loadMessages();
 // check for new messages every 3 seconds

@@ -4,6 +4,15 @@
 
 College students swap skills: learn what you want, teach what you know.
 
+## Screenshots
+![Registration page](https://github.com/user-attachments/assets/a7071146-4173-4147-b9a1-2c612792cb60)
+
+![Home page](https://github.com/user-attachments/assets/b2ce0b7b-ff1f-44f3-84ee-b2dfe754edca)
+
+![Connections page](https://github.com/user-attachments/assets/ebd570de-e0cd-473c-988f-c4054afd03b0)
+
+![Peer Find page](https://github.com/user-attachments/assets/0c44a621-2487-4e07-af24-4d1cb43b9cee)
+
 ## How it fits together
 Browser (HTML/CSS/JS in this folder) -> Express server (backend/server.js) -> MongoDB Atlas (database "SkillSwap")
 
